@@ -1,5 +1,6 @@
 package at.ac.fhcampuswien.newsanalyzer.ctrl;
 
+import at.ac.fhcampuswien.newsanalyzer.downloader.Downloader;
 import at.ac.fhcampuswien.newsapi.NewsApi;
 import at.ac.fhcampuswien.newsapi.beans.Article;
 import at.ac.fhcampuswien.newsapi.beans.NewsResponse;
@@ -11,7 +12,7 @@ import java.util.stream.Collectors;
 
 public class Controller {
 
-	public static final String APIKEY = "0038b5ccc1124e94b01d19b0d5982697";  //0038b5ccc1124e94b01d19b0d5982697
+	public static final String APIKEY = "2fab5689ec454f02a0a4433f00e18b2e";  //0038b5ccc1124e94b01d19b0d5982697
 
 	private List<Article> articles = null;
 
@@ -83,5 +84,37 @@ public class Controller {
 				.max(Comparator.comparingInt(o -> o.getValue().size()))
 				.map(stringListEntry -> stringListEntry.getKey() + " " + stringListEntry.getValue().size())
 				.orElseThrow();
+	}
+
+	/**
+	 *
+	 * @return List of URLs as String from last search
+	 * @throws NewsAPIException when no previous search exists
+	 */
+	public List<String> getUrlList() throws NewsAPIException {
+		if (articles == null)
+			throw new NewsAPIException("Load data first");
+
+		return articles.stream()
+				.map(Article::getUrl)
+				.collect(Collectors.toList());
+	}
+
+	/**
+	 *  download news from last search
+	 */
+	public void downloadNews(Downloader dl) {
+		try {
+			List<String> urls = getUrlList();
+			long startTime = System.currentTimeMillis();
+			int count = dl.process(urls);
+			long endTime = System.currentTimeMillis();
+			System.out.printf("%d articles have been downloaded in %d ms using %s\n", count, (endTime - startTime), dl.getClass().getSimpleName());
+		} catch (NewsAPIException e) {
+			System.out.println("Please load data first!");
+		} catch (Exception e){
+			System.out.println("An error occurred!");
+			System.err.println(e.getMessage());
+		}
 	}
 }

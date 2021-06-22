@@ -10,7 +10,7 @@ import java.util.Objects;
 
 public abstract class Downloader {
 
-    public static final String HTML_EXTENTION = ".html";
+    public static final String HTML_EXTENSION = ".html";
     public static final String DIRECTORY_DOWNLOAD = "./download/";
 
     public abstract int process(List<String> urls);
@@ -25,8 +25,15 @@ public abstract class Downloader {
 
             fileName = urlString.substring(urlString.lastIndexOf('/') + 1);
             if (fileName.isEmpty()) {
-                fileName = url4download.getHost() + HTML_EXTENTION;
+//                fileName = url4download.getHost() + HTML_EXTENSION;
+                fileName = url4download.getPath() + HTML_EXTENSION;
             }
+
+            fileName = fileName.replaceAll("[:\\\\/*?|<>\"]", "");
+            if (!fileName.endsWith(HTML_EXTENSION)){
+                fileName = fileName + HTML_EXTENSION;
+            }
+
             os = new FileOutputStream(DIRECTORY_DOWNLOAD + fileName);
 
             byte[] b = new byte[2048];
@@ -35,15 +42,37 @@ public abstract class Downloader {
                 os.write(b, 0, length);
             }
         } catch (IOException e) {
-            e.printStackTrace();
+//            e.printStackTrace();
+            System.out.printf("\nDownloading file %s was not successful, please try again later!\n", fileName);
+            System.err.println(e.getMessage());
         } finally {
             try {
                 Objects.requireNonNull(is).close();
                 Objects.requireNonNull(os).close();
             } catch (IOException e) {
-                e.printStackTrace();
+//                e.printStackTrace();
+                System.out.println("An error occurred!");
+                System.err.println(e.getMessage());
             }
         }
         return fileName;
+    }
+
+    public void printProgressBar(int amount, int max){
+        if (amount >= 0 && amount <= max){
+            final int MAXLEN = 100;
+            int percent = (int) Math.round(amount * 100.0 / max);
+            StringBuilder sb = new StringBuilder();
+            sb.append("[");
+            for (int i = 1; i <= MAXLEN; i++){
+                if (i <= percent) sb.append("#");
+                else sb.append(" ");
+            }
+            sb.append("] ");
+            sb.append(percent);
+            sb.append("%");
+            System.out.printf("%s%s", sb, (amount < max ? "\r" : "\n"));
+        }
+
     }
 }

@@ -9,8 +9,11 @@ public class SequentialDownloader extends Downloader {
         int count = 0;
         for (String url : urls) {
             String fileName = saveUrl2File(url);
-            if(fileName != null)
+            if(fileName != null){
                 count++;
+                printProgressBar(count, urls.size());
+            }
+
         }
         return count;
     }
